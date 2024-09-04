@@ -15,3 +15,7 @@ sudo mkdir -p /media/cdrom0; if [[ -f /etc/fedora-release ]]; then sudo dnf inst
 
 1. vim config/environments/development.rb config.hosts << "http://openstep.ddns.net"
 2. bundle install --path vendor/bundle/
+3. Postgress
+  3.1. sudo -u postgres psql
+  3.2. create user vagrant;
+  3.3. alter user vagrant with superuser;

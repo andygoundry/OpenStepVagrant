@@ -1,12 +1,12 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# Environment variables needed by the app
 $set_environment_variables = <<SCRIPT
   tee "/etc/profile.d/myvars.sh" > "/dev/null" <<EOF
   export GOOGLE_PLACES_API_KEY=AIzaSyAVEskLQJC-i3MDlXeIIaAZBZZk7b2wrkY
   EOF
 SCRIPT
-
 
 Vagrant.configure("2") do |config|
 
@@ -20,10 +20,11 @@ Vagrant.configure("2") do |config|
 
     # NETWORK
     rails_server.vm.network "forwarded_port", guest: 3000, host: 3000
-    
+    rails_server.vm.network "forwarded_port", guest: 3000, host: 80
+
     # APT
     rails_server.vm.provision "Apt Setup", type: "shell", reboot: false, inline: <<-SHELL
-      sudo apt update -y && apt upgrade -y
+      apt update -y && apt upgrade -y
       apt-get update -y && apt-get upgrade -y
     SHELL
 
@@ -58,8 +59,6 @@ Vagrant.configure("2") do |config|
 
     rails_server.vm.provision "RVM and Ruby p1", type: "shell", inline: <<-SHELL
       rvm requirements --quiet
-      rvm install 2.7.6 --quiet
-      rvm install 3.4 --quiet
       rvm install ruby-3.3.4 --quiet
       rvm alias create default ruby-3.3.4
     SHELL
@@ -76,7 +75,6 @@ Vagrant.configure("2") do |config|
     rails_server.vm.provision "Rails and Rails App Setup", type: "shell", inline: <<-SHELL
       gem install rails --quiet
       gem install sprockets_rails3 sqlite3 puma importmap-rails turbo-rails stimulus-rails jbuilder bootsnap brakeman rubocop-rails-omakase web-console capybara selenium-webdriver msgpack irb reline racc rubocop rubocop-minitest rubocop-performance rubocop-rails bindex addressable xpath rexml rdoc parser rubocop-ast net-imap
-      chmod 777 /usr/local/rvm/gems/ruby-3.4.0-preview1/*
       gem install pg -v '1.3.5' --source 'https://rubygems.org/'
     SHELL
 
@@ -86,25 +84,6 @@ Vagrant.configure("2") do |config|
       echo "alias rails_server='bin/rails server -b 0.0.0.0 -p 3000'" >> /home/vagrant/.bashrc
       echo "alias apps='cd /vagrant'" >> /home/vagrant/.bashrc
     SHELL
-
-=begin
-
-  # automation to resolve
-  vim config/environments/development.rb config.hosts << "http://openstep.ddns.net"
-  in mac before all of the above:
-    
-    # install vagrant and vagrant parallels provider
-
-    # attach parallels tools for the vm to install
-    VM_ID=$(prlctl list -a | grep running | awk '{print $1}' | head -n 1) && ISO_PATH=$(if [[ $(uname -m) == "x86_64" ]]; then echo "/Applications/Parallels Desktop.app/Contents/Resources/Tools/prl-tools-lin.iso"; elif [[ $(uname -m) == "arm64" ]]; then echo "/Applications/Parallels Desktop.app/Contents/Resources/Tools/prl-tools-lin-arm.iso"; fi) && prlctl set $VM_ID --device-set cdrom0 --image "$ISO_PATH" --connect
-  in vm: 
-
-  # install on vm
-  sudo mkdir -p /media/cdrom0; if [[ -f /etc/fedora-release ]]; then sudo dnf install -y gcc kernel-devel-$(uname -r) kernel-headers-$(uname -r) make checkpolicy selinux-policy-devel; sudo mount -o exec /dev/sr0 /media/cdrom0; cd /media/cdrom0; sudo ./install; elif [[ -f /etc/debian_version ]] || [[ -f /etc/kali_version ]] || [[ -f /etc/os-release && $(grep -Ei "NAME=\"Debian|NAME=\"Ubuntu" /etc/os-release) ]]; then sudo apt-get install -y dkms libelf-dev linux-headers-$(uname -r) build-essential; sudo mount -o exec /dev/sr0 /media/cdrom0; cd /media/cdrom0; sudo ./install; fi
-    
-  # bundle WeMedidate
-  # bundle install --path vendor/bundle/
-=end
 
   end
 
